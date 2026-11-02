@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en" class="light" data-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>ChronoPresence — Enterprise Attendance & Leave</title>
+
+  <!-- Google Fonts: Inter & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#fbf8ff",
+            "surface-dim": "#dad9e3",
+            "surface-bright": "#fbf8ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f4f2fd",
+            "surface-container": "#eeedf7",
+            "surface-container-high": "#e8e7f1",
+            "surface-container-highest": "#e3e1ec",
+            "on-surface": "#1a1b22",
+            "on-surface-variant": "#464554",
+            "outline": "#777586",
+            "outline-variant": "#c7c4d7",
+            "primary": "#2a14b4",
+            "primary-container": "#4338ca",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#c1beff",
+            "primary-fixed": "#e3dfff",
+            "primary-fixed-dim": "#c3c0ff",
+            "secondary": "#006a61",
+            "secondary-container": "#86f2e4",
+            "on-secondary": "#ffffff",
+            "on-secondary-container": "#006f66",
+            "secondary-fixed": "#89f5e7",
+            "tertiary": "#5c2f00",
+            "tertiary-container": "#7d4200",
+            "on-tertiary-container": "#ffb477",
+            "tertiary-fixed": "#ffdcc3",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "inverse-surface": "#2f3038",
+            "inverse-on-surface": "#f1effa"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            mono: ["Inter", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Dark mode overrides for custom variables */
+    html.dark {
+      color-scheme: dark;
+    }
+    html.dark body {
+      background-color: #0d111c !important;
+      color: #f1effa !important;
+    }
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-surface-container-lowest {
+      background-color: #151928 !important;
+      color: #f1effa !important;
+    }
+    html.dark .bg-surface-container-low {
+      background-color: #1c2236 !important;
+    }
+    html.dark .bg-surface-container {
+      background-color: #242b44 !important;
+    }
+    html.dark .text-on-surface {
+      color: #f1effa !important;
+    }
+    html.dark .text-on-surface-variant {
+      color: #9ea2b8 !important;
+    }
+    html.dark input,
+    html.dark textarea,
+    html.dark select {
+      background-color: #1c2236 !important;
+      color: #f1effa !important;
+      border-color: #2e3654 !important;
+    }
+    html.dark .border-outline-variant\/50 {
+      border-color: #2e3654 !important;
+    }
+    /* Hide scrollbar */
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-surface font-sans text-on-surface antialiased transition-colors duration-200">
+
+  <!-- Spinner -->
+  <div id="spinner" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9999] flex items-center justify-center transition-opacity" style="display:none;">
+    <div class="bg-surface-container-lowest p-4 rounded-2xl shadow-xl flex items-center gap-3">
+      <span class="material-symbols-outlined text-primary animate-spin text-2xl">sync</span>
+      <span class="text-sm font-medium text-on-surface">Synchronizing...</span>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ── Left Sidebar Navigation (Desktop) ────────────────────────── -->
+  <aside class="hidden lg:flex fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex-col justify-between border-r border-outline-variant/30">
+    <div class="flex flex-col flex-1">
+      <!-- Brand Logo -->
+      <div class="h-16 px-6 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+          <span class="material-symbols-outlined text-lg">calendar_month</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-semibold text-base text-on-surface tracking-tight leading-none">ChronoPresence</span>
+          <span class="text-xs text-on-surface-variant leading-none mt-1">Personal Suite</span>
+        </div>
+      </div>
+
+      <div class="px-4 py-2">
+        <span class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider px-2">Workforce Suite</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="flex-1 px-3 space-y-1">
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 bg-primary-container text-on-primary font-medium rounded-xl shadow-sm transition-all">
+          <span class="material-symbols-outlined text-base">dashboard</span>
+          <span class="text-sm">Dashboard</span>
+        </a>
+        <a href="#attendance-log-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all">
+          <span class="material-symbols-outlined text-base">schedule</span>
+          <span>Attendance Log</span>
+        </a>
+        <a href="javascript:void(0)" onclick="openLeaveModal()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all">
+          <span class="material-symbols-outlined text-base">event_note</span>
+          <span>Leave Requests</span>
+        </a>
+        <a href="#calendar-section" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all">
+          <span class="material-symbols-outlined text-base">calendar_today</span>
+          <span>Calendar</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- User Profile Badge & Theme Toggle -->
+    <div class="p-4 border-t border-outline-variant/20">
+      <div class="bg-surface-container-low rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+            SM
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-xs font-semibold text-on-surface truncate">Sudhir M.</span>
+            <span class="text-[10px] text-on-surface-variant truncate">Office Tracker</span>
+          </div>
+        </div>
+
+        <button onclick="toggleTheme()" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Toggle Light/Dark Theme">
+          <span class="material-symbols-outlined text-base" id="theme-toggle-icon">dark_mode</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main Application Content ─────────────────────────────────── -->
+  <div class="lg:pl-64 flex flex-col min-h-screen">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 h-16 bg-surface/90 backdrop-blur-xl border-b border-outline-variant/30 flex items-center justify-between px-4 sm:px-8">
+      <div class="flex items-center gap-4">
+        <!-- Mobile Menu Indicator -->
+        <div class="flex lg:hidden items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-sm">calendar_month</span>
+          </div>
+          <span class="font-bold text-sm text-on-surface">ChronoPresence</span>
+        </div>
+
+        <nav class="hidden sm:flex items-center gap-1.5 text-on-surface-variant text-xs font-medium">
+          <span class="text-on-surface font-semibold">Attendance</span>
+          <span class="material-symbols-outlined text-xs">chevron_right</span>
+          <span>Live Workspace</span>
+        </nav>
+
+        <div class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded-full border border-outline-variant/30">
+          <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+          <span class="text-[11px] text-secondary font-semibold" id="sync-status">Atlas Connected</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Live Search -->
+        <div class="relative hidden sm:block w-48 lg:w-60">
+          <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">search</span>
+          <input id="globalSearchInput" oninput="handleSearch(this.value)" class="w-full bg-surface-container-low pl-8 pr-3 py-1.5 rounded-xl text-xs text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:outline-none border border-transparent focus:border-primary-container transition-all" placeholder="Search memo or date..." type="text"/>
+        </div>
+
+        <!-- Refresh Button -->
+        <button onclick="loadAll()" class="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Sync with Cloud DB">
+          <span class="material-symbols-outlined text-base">sync</span>
+        </button>
+
+        <!-- Theme Toggle (visible on mobile / tablet) -->
+        <button onclick="toggleTheme()" class="lg:hidden p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Toggle Theme">
+          <span class="material-symbols-outlined text-base" id="theme-toggle-icon-mobile">dark_mode</span>
+        </button>
+
+        <!-- Apply Leave Primary Button -->
+        <button onclick="openLeaveModal()" class="flex items-center gap-1.5 bg-primary-container text-on-primary px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:opacity-90 transition-all shadow-[0_4px_14px_-2px_rgba(67,56,202,0.35)]">
+          <span class="material-symbols-outlined text-base">add</span>
+          <span>Apply Leave</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 w-full px-4 sm:px-8 py-6 space-y-6 max-w-7xl mx-auto">
+
+      <!-- ── Section 1: Hero Today's Status Banner ──────────────────── -->
+      <section class="relative bg-surface-container-lowest rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_-1px_rgba(24,24,27,0.03),0_4px_16px_-2px_rgba(24,24,27,0.06)] overflow-hidden border border-outline-variant/20">
+        <!-- Ambient Radial Glows -->
+        <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-secondary-fixed/20 blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-20 -bottom-20 w-72 h-72 rounded-full bg-primary-fixed/20 blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <!-- Left: Identity & Status Overview -->
+          <div class="flex flex-col space-y-2 max-w-xl">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Live Session Overview</span>
+              <div id="today-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                <!-- Injected via JS -->
+              </div>
+              <span class="text-xs text-on-surface-variant hidden sm:inline">| Timezone: IST (UTC+05:30)</span>
+            </div>
+
+            <h1 class="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight" id="today-date-heading">
+              Loading date...
+            </h1>
+
+            <!-- Workday Progress Indicator -->
+            <div class="pt-1 flex flex-col space-y-1.5">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-on-surface-variant font-medium" id="today-rule-text">10:30 AM Daily Check-in Rule</span>
+                <span class="font-mono font-semibold text-secondary" id="today-progress-percent">Active</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden p-0.5">
+                <div id="today-progress-bar" class="h-full bg-gradient-to-r from-secondary to-secondary-container rounded-full transition-all duration-500" style="width: 50%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Real-time Quick Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0" id="today-actions-bar">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Quick Daily Note Inline Field -->
+        <div class="relative z-10 mt-5 pt-3 bg-surface-container-low/70 rounded-xl p-2.5 flex flex-col sm:flex-row items-center gap-2 border border-outline-variant/20">
+          <div class="flex items-center gap-1.5 pl-2 text-on-surface-variant shrink-0">
+            <span class="material-symbols-outlined text-base text-primary">edit_note</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-on-surface">Daily Log:</span>
+          </div>
+          <input
+            id="today-memo-input"
+            class="w-full bg-transparent px-2 py-1 text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none"
+            placeholder="Log daily work deliverables, client tasks, or leave notes..."
+            type="text"
+          />
+          <button
+            id="save-memo-btn"
+            onclick="saveTodayMemo()"
+            class="shrink-0 w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg bg-surface-container-highest hover:bg-primary-container hover:text-on-primary text-on-surface text-xs font-semibold transition-all shadow-sm"
+          >
+            <span class="material-symbols-outlined text-sm">done</span>
+            <span>Save Note</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Section 2: Metric Overview Cards ──────────────────────── -->
+      <section class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- Days Present -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-on-surface-variant">Days Present</span>
+            <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+              <span class="material-symbols-outlined text-base">check_circle</span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <span class="text-2xl font-bold text-on-surface tracking-tight" id="stat-present">0</span>
+            <div class="flex items-center gap-1 mt-0.5 text-secondary text-[11px] font-semibold">
+              <span class="material-symbols-outlined text-xs">verified</span>
+              <span>Duty Confirmed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Casual Leave -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-on-surface-variant">Casual Leave (CL)</span>
+            <div class="w-8 h-8 rounded-lg bg-primary-fixed/60 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-base">flight_takeoff</span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <span class="text-2xl font-bold text-on-surface tracking-tight" id="stat-cl">0</span>
+            <div class="flex items-center gap-1 mt-0.5 text-on-surface-variant text-[11px] font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+              <span>Casual days taken</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sick Leave -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-on-surface-variant">Sick Leave (SL)</span>
+            <div class="w-8 h-8 rounded-lg bg-tertiary-fixed flex items-center justify-center text-tertiary">
+              <span class="material-symbols-outlined text-base">medical_services</span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <span class="text-2xl font-bold text-on-surface tracking-tight" id="stat-sl">0</span>
+            <div class="flex items-center gap-1 mt-0.5 text-on-surface-variant text-[11px] font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+              <span>Medical recovery</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loss of Pay -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-on-surface-variant">Loss of Pay (LOP)</span>
+            <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-outline">
+              <span class="material-symbols-outlined text-base">money_off</span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <span class="text-2xl font-bold text-on-surface tracking-tight" id="stat-lop">0</span>
+            <div class="flex items-center gap-1 mt-0.5 text-on-surface-variant text-[11px] font-medium">
+              <span class="material-symbols-outlined text-xs">info</span>
+              <span>Unpaid leaves</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Absent -->
+        <div class="col-span-2 sm:col-span-1 bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-on-surface-variant">Absent / Missed</span>
+            <div class="w-8 h-8 rounded-lg bg-error-container flex items-center justify-center text-error">
+              <span class="material-symbols-outlined text-base">event_busy</span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <span class="text-2xl font-bold text-error tracking-tight" id="stat-absent">0</span>
+            <div class="flex items-center gap-1 mt-0.5 text-error text-[11px] font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+              <span>Auto-marked / Action req.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Section 3: Interactive Calendar + Detailed Log ────────── -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- LEFT COLUMN: Interactive Calendar (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-4" id="calendar-section">
+          <div class="bg-surface-container-lowest rounded-2xl p-5 sm:p-6 shadow-sm border border-outline-variant/20">
+            <!-- Calendar Navigation Header -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex flex-col">
+                <h2 class="text-base sm:text-lg font-bold text-on-surface" id="cal-month-title">Month Year</h2>
+                <span class="text-xs text-on-surface-variant">Click any date to view or edit</span>
+              </div>
+              <div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-xl">
+                <button onclick="prevMonth()" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Previous Month">
+                  <span class="material-symbols-outlined text-base">chevron_left</span>
+                </button>
+                <button onclick="goToCurrentMonth()" class="px-2 py-0.5 rounded-lg text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors">Today</button>
+                <button onclick="nextMonth()" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Next Month">
+                  <span class="material-symbols-outlined text-base">chevron_right</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Days of Week Header -->
+            <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-on-surface-variant pb-2">
+              <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+
+            <!-- Calendar Cells Grid -->
+            <div class="grid grid-cols-7 gap-1.5 text-center text-xs" id="cal-grid-cells">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Status Color Legend -->
+            <div class="mt-5 pt-3 border-t border-outline-variant/20 flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+                <span>Present</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+                <span>CL</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+                <span>SL</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+                <span>Absent</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-outline-variant"></span>
+                <span>Weekend</span>
+              </div>
+            </div>
+
+            <!-- Calendar Action Button -->
+            <div class="mt-4 pt-2">
+              <button onclick="openLeaveModal()" class="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-surface-container-low hover:bg-primary-container hover:text-on-primary text-primary-container text-xs font-semibold transition-all">
+                <span class="material-symbols-outlined text-base">add_circle</span>
+                <span>Request Leave for Any Date</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Detailed Logs & Attendance History Table (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col space-y-4" id="attendance-log-section">
+          <div class="bg-surface-container-lowest rounded-2xl p-5 sm:p-6 shadow-sm border border-outline-variant/20">
+            <!-- Header & Action Suite -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4">
+              <div class="flex flex-col">
+                <h2 class="text-base sm:text-lg font-bold text-on-surface">Attendance Log & History</h2>
+                <span class="text-xs text-on-surface-variant">Synchronized cloud records</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="exportToCsv()" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold transition-colors" title="Export as CSV">
+                  <span class="material-symbols-outlined text-sm">file_download</span>
+                  <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filter Pills Bar -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-3" id="filter-pills-bar">
+              <button onclick="setFilter('all', this)" class="filter-tag active px-3 py-1 rounded-full bg-primary-container text-on-primary text-xs font-semibold shadow-sm transition-all whitespace-nowrap">All</button>
+              <button onclick="setFilter('present', this)" class="filter-tag px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant text-xs font-semibold transition-all whitespace-nowrap">Present</button>
+              <button onclick="setFilter('CL', this)" class="filter-tag px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant text-xs font-semibold transition-all whitespace-nowrap">Casual Leave</button>
+              <button onclick="setFilter('SL', this)" class="filter-tag px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant text-xs font-semibold transition-all whitespace-nowrap">Sick Leave</button>
+              <button onclick="setFilter('LOP', this)" class="filter-tag px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant text-xs font-semibold transition-all whitespace-nowrap">LOP</button>
+              <button onclick="setFilter('absent', this)" class="filter-tag px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant text-xs font-semibold transition-all whitespace-nowrap">Absent</button>
+            </div>
+
+            <!-- Borderless Data Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead>
+                  <tr class="text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider border-b border-outline-variant/20">
+                    <th class="py-2.5 font-semibold">Date</th>
+                    <th class="py-2.5 font-semibold">Status</th>
+                    <th class="py-2.5 font-semibold">Time</th>
+                    <th class="py-2.5 font-semibold">Daily Memo</th>
+                    <th class="py-2.5 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10" id="attendanceTableBody">
+                  <tr>
+                    <td colspan="5" class="py-8 text-center text-on-surface-variant">Loading records...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ── Modal 1: Apply Leave ─────────────────────────────────────── -->
+  <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all" id="leaveModalBackdrop">
+    <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col space-y-4 border border-outline-variant/20 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-on-surface">Apply for Leave</h3>
+          <span class="text-xs text-on-surface-variant">Classify your office attendance exception</span>
+        </div>
+        <button onclick="closeLeaveModal()" class="p-1 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <form class="space-y-4" onsubmit="event.preventDefault(); submitLeaveApplication();">
+        <div class="flex flex-col space-y-1.5">
+          <label class="text-xs font-bold text-on-surface">Leave Category</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low cursor-pointer hover:bg-surface-container text-center border border-transparent has-[:checked]:border-primary-container has-[:checked]:bg-primary-fixed/30 transition-all">
+              <input checked name="leaveCategory" type="radio" value="CL" class="hidden"/>
+              <span class="text-xs font-bold text-on-surface">Casual (CL)</span>
+              <span class="text-[10px] text-on-surface-variant">Planned</span>
+            </label>
+            <label class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low cursor-pointer hover:bg-surface-container text-center border border-transparent has-[:checked]:border-tertiary has-[:checked]:bg-tertiary-fixed/30 transition-all">
+              <input name="leaveCategory" type="radio" value="SL" class="hidden"/>
+              <span class="text-xs font-bold text-on-surface">Sick (SL)</span>
+              <span class="text-[10px] text-on-surface-variant">Medical</span>
+            </label>
+            <label class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low cursor-pointer hover:bg-surface-container text-center border border-transparent has-[:checked]:border-error has-[:checked]:bg-error-container/30 transition-all">
+              <input name="leaveCategory" type="radio" value="LOP" class="hidden"/>
+              <span class="text-xs font-bold text-on-surface">Unpaid (LOP)</span>
+              <span class="text-[10px] text-on-surface-variant">Loss of Pay</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex flex-col space-y-1">
+          <label class="text-xs font-semibold text-on-surface">Date</label>
+          <input id="leaveDateInput" class="w-full bg-surface-container-low px-3 py-2 rounded-xl text-xs text-on-surface border border-outline-variant/30 focus:outline-none focus:border-primary-container" type="date"/>
+        </div>
+
+        <div class="flex flex-col space-y-1">
+          <label class="text-xs font-semibold text-on-surface">Reason & Memo (Optional)</label>
+          <textarea id="leaveReasonInput" rows="3" class="w-full bg-surface-container-low px-3 py-2 rounded-xl text-xs text-on-surface border border-outline-variant/30 placeholder:text-on-surface-variant focus:outline-none focus:border-primary-container resize-none" placeholder="Reason for leave, urgent task status, etc..."></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeLeaveModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-primary-container text-on-primary text-xs font-semibold hover:opacity-95 transition-all shadow-md">Confirm Leave</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal 2: Day Details & Override ──────────────────────────── -->
+  <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all" id="dayModalBackdrop">
+    <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col space-y-4 border border-outline-variant/20 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-on-surface" id="modalDayDate">Day Details</h3>
+          <div class="mt-1" id="modalDayBadge"></div>
+        </div>
+        <button onclick="closeDayModal()" class="p-1 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex flex-col space-y-1">
+          <label class="text-xs font-semibold text-on-surface">Work Note / Daily Memo</label>
+          <textarea id="modalDayNote" rows="3" class="w-full bg-surface-container-low px-3 py-2 rounded-xl text-xs text-on-surface border border-outline-variant/30 focus:outline-none focus:border-primary-container resize-none" placeholder="Write or update notes for this day..."></textarea>
+          <button onclick="saveModalDayNote()" class="mt-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold transition-all">
+            <span class="material-symbols-outlined text-sm">save</span>
+            <span>Update Note</span>
+          </button>
+        </div>
+
+        <div id="modalStatusOverrideSection" class="pt-3 border-t border-outline-variant/20">
+          <label class="text-xs font-semibold text-on-surface block mb-1">Status Classification</label>
+          <div class="flex gap-2">
+            <select id="modalDayStatusSelect" class="flex-1 bg-surface-container-low px-3 py-1.5 rounded-xl text-xs text-on-surface border border-outline-variant/30 focus:outline-none">
+              <option value="present">Present</option>
+              <option value="CL">Casual Leave (CL)</option>
+              <option value="SL">Sick Leave (SL)</option>
+              <option value="LOP">Loss of Pay (LOP)</option>
+              <option value="absent">Absent</option>
+            </select>
+            <button onclick="saveModalDayStatus()" class="px-4 py-1.5 rounded-xl bg-primary-container text-on-primary text-xs font-semibold hover:opacity-95 transition-all shadow-sm">
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
