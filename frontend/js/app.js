@@ -2,7 +2,7 @@
 
 const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? (window.location.port === '5000' ? '/api/attendance' : 'http://localhost:5000/api/attendance')
-  : 'https://attendance-appie.onrender.com/';
+  : 'https://attendance-appie.onrender.com/api/attendance';
 
 // ── State ────────────────────────────────────────────────────────────────────
 let allRecords = [];
@@ -155,6 +155,11 @@ async function apiFetch(path, options = {}) {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    throw new Error(`Server returned non-JSON response (${res.status}): ${text.slice(0, 100)}`);
+  }
   const json = await res.json();
   if (!json.success) throw new Error(json.message || 'Request failed');
   return json.data;
