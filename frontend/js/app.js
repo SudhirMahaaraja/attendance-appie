@@ -2,7 +2,7 @@
 
 const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? (window.location.port === '5000' ? '/api/attendance' : 'http://localhost:5000/api/attendance')
-  : 'https://your-render-app.onrender.com/api/attendance';
+  : 'https://attendance-appie.onrender.com/';
 
 // ── State ────────────────────────────────────────────────────────────────────
 let allRecords = [];
@@ -317,10 +317,10 @@ function renderTodayBanner() {
 // ── Section 2: Summary Stats ─────────────────────────────────────────────────
 function renderSummary(s) {
   document.getElementById('stat-present').textContent = s.present ?? 0;
-  document.getElementById('stat-cl').textContent      = s.CL      ?? 0;
-  document.getElementById('stat-sl').textContent      = s.SL      ?? 0;
-  document.getElementById('stat-lop').textContent     = s.LOP     ?? 0;
-  document.getElementById('stat-absent').textContent  = s.absent  ?? 0;
+  document.getElementById('stat-cl').textContent = s.CL ?? 0;
+  document.getElementById('stat-sl').textContent = s.SL ?? 0;
+  document.getElementById('stat-lop').textContent = s.LOP ?? 0;
+  document.getElementById('stat-absent').textContent = s.absent ?? 0;
 }
 
 // ── Section 3: Interactive Calendar ──────────────────────────────────────────
